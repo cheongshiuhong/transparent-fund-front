@@ -3,8 +3,10 @@ import type { Contract } from 'ethers';
 import type { IFundContext } from '../interfaces';
 
 /**
+ * Sets timeout.
  *
- * @param {number} ms - The ms to sleep. 
+ * @param {number} ms - The ms to sleep.
+ * @returns {Promise<void>} - The timer.
  */
 function timeout(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
