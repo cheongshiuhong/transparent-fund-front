@@ -44,9 +44,16 @@ const MinAmountOutInput: FC = (): ReactElement => {
         }
 
         // Adjust the fund token price to fund token's decimals
-        const adjFundTokenPrice = fundTokenPrice.mul(
-            BigNumber.from(10).pow(tokenDecimals - fundToken.decimals)
-        );
+        let adjFundTokenPrice: BigNumber;
+        if (tokenDecimals < fundToken.decimals) {
+            adjFundTokenPrice = fundTokenPrice.div(
+                BigNumber.from(10).pow(fundToken.decimals - tokenDecimals)
+            );
+        } else {
+            adjFundTokenPrice = fundTokenPrice.mul(
+                BigNumber.from(10).pow(tokenDecimals - fundToken.decimals)
+            );
+        }
 
         // amt_in * token_price / fund_token_price
         const amountOut = BigNumber.from(amountIn).mul(adjFundTokenPrice).div(tokenPrice);

@@ -81,6 +81,8 @@ export default async (
         Promise.resolve({}) as Promise<IFundContext['fundDetails']['allowedTokens']>
     );
 
+    await timeout(1000);
+
     const incentives = await (incentivesAddresses as string[]).reduce(async (current, address) => {
         const name = await iIncentiveContract.attach(address).getName();
         return { ...(await current), [address]: { address, name } };
