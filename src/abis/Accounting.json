@@ -1,0 +1,305 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "fundAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialAumValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialFundTokenSupply",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialManagementFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint32",
+        "name": "initialEvaluationPeriodBlocks",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxManagementFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint32",
+        "name": "minEvaluationPeriodBlocks",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "aumValue",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalSupply",
+        "type": "uint256"
+      }
+    ],
+    "name": "EvaluationPeriodReset",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_MANAGEMENT_FEE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MIN_EVALUATION_PERIOD_BLOCKS",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAumValue",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct Decimals.Number",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getEvaluationPeriodBlocks",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getFund",
+    "outputs": [
+      {
+        "internalType": "contract IMainFund",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getFundAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getFundTokenPrice",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct Decimals.Number",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getManagementFee",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getState",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "aumValue",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "periodBeginningBlock",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "periodBeginningAum",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "periodBeginningSupply",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "theoreticalSupply",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IAccounting.AccountingState",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newAumValue",
+        "type": "uint256"
+      }
+    ],
+    "name": "recordAumValue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "depositValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amountMinted",
+        "type": "uint256"
+      }
+    ],
+    "name": "recordDeposits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "withdrawalValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amountBurned",
+        "type": "uint256"
+      }
+    ],
+    "name": "recordWithdrawals",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "newEvaluationPeriodBlocks",
+        "type": "uint32"
+      }
+    ],
+    "name": "setEvaluationPeriodBlocks",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newManagementFee",
+        "type": "uint256"
+      }
+    ],
+    "name": "setMangementFee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
