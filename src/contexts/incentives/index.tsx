@@ -34,7 +34,7 @@ export const useIncentivesContext = (): IIncentivesContext => useContext(Incenti
  * @returns {ReactElement} - The children with the context provided.
  */
 export const IncentivesContextProvider: FC<WrapperProps> = ({ children }): ReactElement => {
-    const { provider, userAddress } = useWeb3Context();
+    const { readProvider, userAddress } = useWeb3Context();
     const {
         fundDetails: { incentives }
     } = useFundContext();
@@ -46,10 +46,10 @@ export const IncentivesContextProvider: FC<WrapperProps> = ({ children }): React
     /** Effect for initial load when provider is ready */
     useEffect(() => {
         const loadInitial = async (): Promise<void> => {
-            if (!provider || !userAddress || !Object.keys(incentives).length) return;
+            if (!readProvider || !userAddress || !Object.keys(incentives).length) return;
             setIsLoading(true);
 
-            const iIncentiveContract = contracts.iIncentive.connect(provider);
+            const iIncentiveContract = contracts.iIncentive.connect(readProvider);
 
             // Load the incentives qualifications
             const incentivesDetailsResponse = await Object.values(incentives).reduce(
@@ -72,11 +72,11 @@ export const IncentivesContextProvider: FC<WrapperProps> = ({ children }): React
         loadInitial();
 
         return () => {
-            if (!provider || !userAddress) return;
+            if (!readProvider || !userAddress) return;
         };
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [provider, userAddress, incentives]);
+    }, [readProvider, userAddress, incentives]);
 
     return (
         <IncentivesContext.Provider

@@ -20,19 +20,19 @@ type UseTokenBalanceReturn = {
  * @returns {UseTokenBalanceReturn} - The balance and its decimals.
  */
 const useTokenBalance = (address: string): UseTokenBalanceReturn => {
-    const { provider, userAddress } = useWeb3Context();
+    const { readProvider, userAddress, writeProvider } = useWeb3Context();
     const [balance, setBalance] = useState<UseTokenBalanceReturn['balance']>(BigNumber.from(0));
     const [decimals, setDecimals] = useState<UseTokenBalanceReturn['decimals']>(0);
 
     /** Effect to load the balance when input address changes */
     useEffect(() => {
         const load = async (): Promise<void> => {
-            if (!address || !provider || !userAddress) {
+            if (!address || !readProvider || !userAddress) {
                 setBalance(BigNumber.from(0));
                 return;
             }
 
-            const tokenContract = contracts.erc20.attach(address).connect(provider);
+            const tokenContract = contracts.erc20.attach(address).connect(readProvider);
 
             setBalance(await tokenContract.balanceOf(userAddress));
             setDecimals(await tokenContract.decimals());
@@ -51,10 +51,10 @@ const useTokenBalance = (address: string): UseTokenBalanceReturn => {
         load();
 
         return () => {
-            if (!provider || !address) return;
-            contracts.erc20.attach(address).connect(provider).removeAllListeners();
+            if (!readProvider || !address) return;
+            contracts.erc20.attach(address).connect(readProvider).removeAllListeners();
         };
-    }, [address, provider, userAddress]);
+    }, [address, readProvider, userAddress]);
 
     return { balance, decimals };
 };

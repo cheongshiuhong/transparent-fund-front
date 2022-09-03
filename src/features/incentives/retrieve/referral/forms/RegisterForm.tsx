@@ -14,6 +14,7 @@ type RegisterFormInputs = {
 };
 type RegisterFormProps = {
     isRegistering: boolean;
+    isAwaitingConfirmation: boolean;
     register: (referrerAddress: string) => Promise<void>;
 };
 
@@ -25,6 +26,7 @@ type RegisterFormProps = {
  */
 const RegisterForm: FC<RegisterFormProps> = ({
     isRegistering,
+    isAwaitingConfirmation,
     register
 }: RegisterFormProps): ReactElement => {
     const [error, setError] = useState<string>('');
@@ -79,9 +81,11 @@ const RegisterForm: FC<RegisterFormProps> = ({
                     </div>
                     <div className="flex items-center justify-center">
                         <TransactButton
+                            type="button"
                             className="px-4 py-2 h-10 bg-green-600 text-white rounded-md shadow-md"
                             onClick={submitForm}
                             isSubmitting={isRegistering}
+                            isAwaitingConfirmation={isAwaitingConfirmation}
                             disabled={!!Object.keys(errors).length || isRegistering}>
                             Register Now!
                         </TransactButton>

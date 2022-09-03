@@ -23,6 +23,7 @@ const RequestsContext = createContext<IRequestsContext>({
     isRequesting: false,
     isCancelling: false,
     isReclaimingIndex: null,
+    isAwaitingConfirmation: false,
     total: BigNumber.from(0),
     requests: [],
     hasMore: false,
@@ -49,12 +50,14 @@ export const useRequestsContext = (): IRequestsContext => useContext(RequestsCon
 export const RequestsContextProvider: FC<WrapperProps> = ({
     children
 }: WrapperProps): ReactElement => {
-    const { provider, userAddress } = useWeb3Context();
+    const { readProvider, writeProvider, userAddress } = useWeb3Context();
     const [isLoading, setIsLoading] = useState<IRequestsContext['isLoading']>(false);
     const [isRequesting, setIsRequesting] = useState<IRequestsContext['isRequesting']>(false);
     const [isCancelling, setIsCancelling] = useState<IRequestsContext['isCancelling']>(false);
     const [isReclaimingIndex, setIsReclaimingIndex] =
         useState<IRequestsContext['isReclaimingIndex']>(null);
+    const [isAwaitingConfirmation, setIsAwaitingConfirmation] =
+        useState<IRequestsContext['isAwaitingConfirmation']>(false);
     const [total, setTotal] = useState<IRequestsContext['total']>(BigNumber.from(0));
     const [requests, setRequests] = useState<IRequestsContext['requests']>([]);
 
@@ -92,10 +95,10 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
     /** Effect for initial load when provider is ready */
     useEffect(() => {
         const loadInitial = async (): Promise<void> => {
-            if (!provider || !userAddress) return;
+            if (!readProvider || !userAddress) return;
             setIsLoading(true);
 
-            const frontOfficeContract = contracts.frontOffice.connect(provider);
+            const frontOfficeContract = contracts.frontOffice.connect(readProvider);
 
             // Fetch initial states
             const totalResponse: BigNumber = await frontOfficeContract.getUserRequestCount(
@@ -115,105 +118,47 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
             setRequests(requestsResponse);
             setIsLoading(false);
 
-            // Subscribe to new requests created
-            frontOfficeContract.on(
-                frontOfficeContract.filters.RequestCreated(userAddress),
-                async (_, accessor, createdRequest) => {
-                    // Get the refs to the states
-                    const total = totalRef.current;
-                    const requests = requestsRef.current;
-                    if (!total || !requests) return;
+            // // Subscribe to reclaiming of tokens
+            // frontOfficeContract.on(
+            //     frontOfficeContract.filters.RequestReclaimed(userAddress),
+            //     async (_, accessor) => {
+            //         // Get the refs to the states
+            //         const requests = requestsRef.current;
+            //         if (!requests) return;
 
-                    // Skip if already exist
-                    if (
-                        requests.some(
-                            (request) =>
-                                request.isDeposit === accessor.isDeposit &&
-                                request.token === accessor.token &&
-                                request.queueNumber.eq(accessor.queueNumber)
-                        )
-                    ) {
-                        return;
-                    }
-
-                    setTotal(total.add(1));
-                    setRequests([{ index: total, ...accessor, ...createdRequest }, ...requests]);
-                }
-            );
-
-            // Subscribe to latest request being cancelled
-            frontOfficeContract.on(
-                frontOfficeContract.filters.RequestCancelled(userAddress),
-                async (_, accessor, metaData) => {
-                    // Get the refs to the states
-                    const requests = requestsRef.current;
-                    if (!requests) return;
-
-                    // Skip if not the latest pending request
-                    if (
-                        accessor.isDeposit !== requests[0].isDeposit ||
-                        accessor.token !== requests[0].token ||
-                        !accessor.queueNumber.eq(requests[0].queueNumber)
-                    ) {
-                        console.log(
-                            accessor.queueNumber,
-                            'Not the latest request.. returning here'
-                        );
-                        return;
-                    }
-
-                    setRequests([
-                        {
-                            ...requests[0],
-                            status: Status.CANCELLED,
-                            blockUpdated: metaData.blockNumber
-                        },
-                        ...requests.slice(1)
-                    ]);
-                }
-            );
-
-            // Subscribe to reclaiming of tokens
-            frontOfficeContract.on(
-                frontOfficeContract.filters.RequestReclaimed(userAddress),
-                async (_, accessor) => {
-                    // Get the refs to the states
-                    const requests = requestsRef.current;
-                    if (!requests) return;
-
-                    for (let i = 0; i < requests.length; i++) {
-                        if (
-                            requests[i].isDeposit === accessor.isDeposit &&
-                            requests[i].token === accessor.token &&
-                            requests[i].queueNumber.eq(accessor.queueNumber)
-                        ) {
-                            setRequests([
-                                ...requests.slice(0, i),
-                                { ...requests[i], isReclaimed: true },
-                                ...requests.slice(i + 1)
-                            ]);
-                            return;
-                        }
-                    }
-                }
-            );
+            //         for (let i = 0; i < requests.length; i++) {
+            //             if (
+            //                 requests[i].isDeposit === accessor.isDeposit &&
+            //                 requests[i].token === accessor.token &&
+            //                 requests[i].queueNumber.eq(accessor.queueNumber)
+            //             ) {
+            //                 setRequests([
+            //                     ...requests.slice(0, i),
+            //                     { ...requests[i], isReclaimed: true },
+            //                     ...requests.slice(i + 1)
+            //                 ]);
+            //                 return;
+            //             }
+            //         }
+            //     }
+            // );
         };
 
         loadInitial();
 
         return () => {
-            if (!provider || !userAddress) return;
-            contracts.frontOffice.connect(provider).removeAllListeners();
+            if (!readProvider || !userAddress) return;
+            contracts.frontOffice.connect(readProvider).removeAllListeners();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [provider, userAddress]);
+    }, [readProvider, userAddress]);
 
     /** Loads more requests */
     const loadMore = async (): Promise<void> => {
-        if (!provider || !userAddress || total.lte(requests.length)) return;
+        if (!readProvider || !userAddress || total.lte(requests.length)) return;
         setIsLoading(true);
 
-        const frontOfficeContract = contracts.frontOffice.connect(provider);
+        const frontOfficeContract = contracts.frontOffice.connect(readProvider);
 
         const numRemaining = total.sub(requests.length);
         const numToFetch = numRemaining.lt(10) ? numRemaining.toNumber() : 10;
@@ -236,19 +181,26 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
      * @param {DepositRequestArgs} args - The arguments to submit.
      */
     const requestDeposit = async (args: DepositRequestArgs): Promise<void> => {
-        if (!provider) return;
+        if (!writeProvider) return;
         try {
             setIsRequesting(true);
-            const frontOfficeContract = contracts.frontOffice.connect(provider.getSigner());
-            await frontOfficeContract.requestDeposit(
+            const frontOfficeContract = contracts.frontOffice.connect(writeProvider.getSigner());
+            const txn = await frontOfficeContract.requestDeposit(
                 args.tokenAddress,
                 args.amountIn,
                 args.minAmountOut,
                 args.blockDeadline,
                 args.incentiveAddress
             );
+            setIsAwaitingConfirmation(true);
+
+            const confirmation = await txn.wait();
+            const event = confirmation.events[1].args;
+            setTotal(total.add(1));
+            setRequests([{ index: total, ...event.accessor, ...event.request }, ...requests]);
         } finally {
             setIsRequesting(false);
+            setIsAwaitingConfirmation(false);
         }
     };
 
@@ -258,30 +210,50 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
      * @param {WithdrawalRequestArgs} args - The arguments to submit.
      */
     const requestWithdrawal = async (args: WithdrawalRequestArgs): Promise<void> => {
-        if (!provider) return;
+        if (!writeProvider) return;
         try {
             setIsRequesting(true);
-            const frontOfficeContract = contracts.frontOffice.connect(provider.getSigner());
-            await frontOfficeContract.requestWithdrawal(
+            const frontOfficeContract = contracts.frontOffice.connect(writeProvider.getSigner());
+            const txn = await frontOfficeContract.requestWithdrawal(
                 args.tokenAddress,
                 args.amountIn,
                 args.minAmountOut,
                 args.blockDeadline
             );
+            setIsAwaitingConfirmation(true);
+
+            const confirmation = await txn.wait();
+            const event = confirmation.events[1].args;
+            setTotal(total.add(1));
+            setRequests([{ index: total, ...event.accessor, ...event.request }, ...requests]);
         } finally {
             setIsRequesting(false);
+            setIsAwaitingConfirmation(false);
         }
     };
 
     /** Cancels the user's latest pending request */
     const cancelLatestRequest = async (): Promise<void> => {
-        if (!provider) return;
+        if (!writeProvider) return;
         try {
             setIsCancelling(true);
-            const frontOfficeContract = contracts.frontOffice.connect(provider.getSigner());
-            await frontOfficeContract.cancelLatestRequest();
+            const frontOfficeContract = contracts.frontOffice.connect(writeProvider.getSigner());
+            const txn = await frontOfficeContract.cancelLatestRequest();
+            console.log('txn:', txn);
+            setIsAwaitingConfirmation(true);
+            const confirmation = await txn.wait();
+            console.log('confirmation', confirmation);
+            setRequests([
+                {
+                    ...requests[0],
+                    status: Status.CANCELLED,
+                    blockUpdated: confirmation.blockNumber
+                },
+                ...requests.slice(1)
+            ]);
         } finally {
             setIsCancelling(false);
+            setIsAwaitingConfirmation(false);
         }
     };
 
@@ -291,13 +263,16 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
      * @param {BigNumber} index - The index of the request to reclaim from.
      */
     const reclaimFromFailedRequest = async (index: BigNumber): Promise<void> => {
-        if (!provider) return;
+        if (!writeProvider) return;
         try {
             setIsReclaimingIndex(index);
-            const frontOfficeContract = contracts.frontOffice.connect(provider.getSigner());
-            await frontOfficeContract.reclaimFromFailedRequest(index);
+            const frontOfficeContract = contracts.frontOffice.connect(writeProvider.getSigner());
+            const txn = await frontOfficeContract.reclaimFromFailedRequest(index);
+            setIsAwaitingConfirmation(true);
+            await txn.wait();
         } finally {
             setIsReclaimingIndex(null);
+            setIsAwaitingConfirmation(false);
         }
     };
 
@@ -308,6 +283,7 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
                 isRequesting,
                 isCancelling,
                 isReclaimingIndex,
+                isAwaitingConfirmation,
                 total,
                 requests,
                 hasMore: total.gt(requests.length),

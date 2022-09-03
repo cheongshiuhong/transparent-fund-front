@@ -6,6 +6,7 @@ export interface IRequestsContext {
     isRequesting: boolean;
     isCancelling: boolean;
     isReclaimingIndex: Nullable<BigNumber>;
+    isAwaitingConfirmation: boolean;
     total: BigNumber;
     requests: Request[];
     hasMore: boolean;

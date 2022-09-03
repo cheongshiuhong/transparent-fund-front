@@ -24,8 +24,15 @@ import { AiFillCaretDown } from 'react-icons/ai';
  * @returns {ReactElement} - The requests component.
  */
 const Requests: FC = (): ReactElement => {
-    const { total, requests, hasMore, loadMore, isCancelling, cancelLatestRequest } =
-        useRequestsContext();
+    const {
+        total,
+        requests,
+        hasMore,
+        loadMore,
+        isCancelling,
+        cancelLatestRequest,
+        isAwaitingConfirmation
+    } = useRequestsContext();
     const [isDepositFormOpen, setIsDepositFormOpen] = useState<boolean>(false);
     const [isWithdrawalFormOpen, setIsWithdrawalFormOpen] = useState<boolean>(false);
 
@@ -38,7 +45,8 @@ const Requests: FC = (): ReactElement => {
                         <TransactButton
                             className="px-3 py-1.5 border-2 border-red-500 text-red-500 rounded-md shadow-md"
                             onClick={cancelLatestRequest}
-                            isSubmitting={isCancelling}>
+                            isSubmitting={isCancelling}
+                            isAwaitingConfirmation={isAwaitingConfirmation}>
                             Cancel Latest Request
                         </TransactButton>
                     ) : (
@@ -85,8 +93,7 @@ const Requests: FC = (): ReactElement => {
                 Forms as modals:
                 Only openeable when first request is not pending.
                 This will close the modal when a request is
-                confirmed to have been created on the chain,
-                since we are subscribed to the creation events.
+                confirmed to have been created on the chain.
             */}
             <Modal
                 isOpen={requests[0]?.status !== Status.PENDING && isDepositFormOpen}

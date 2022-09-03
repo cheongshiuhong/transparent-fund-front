@@ -2,11 +2,15 @@
 import type { FC, ReactElement } from 'react';
 import type { Optional, Token, Request } from '@interfaces/general';
 
+// Libraries
+import { ethers } from 'ethers';
+
 // Contexts
 import { useFundContext } from '@contexts/fund';
 import { useRequestsContext } from '@contexts/requests';
 
 // Code
+import useRouter from '@hooks/useRouter';
 import { Status } from '@constants/requests';
 import Spinner from '@components/ui/Spinner';
 import bigNumberToDecimalString from '@utils/numbers/bigNumberToDecimalString';
@@ -29,10 +33,12 @@ type RequestDisplayProps = {
 const RequestDisplay: FC<RequestDisplayProps> = ({
     request
 }: RequestDisplayProps): ReactElement => {
+    const { redirect } = useRouter();
     const {
         fundDetails: { allowedTokens, fundToken }
     } = useFundContext();
-    const { isReclaimingIndex, reclaimFromFailedRequest } = useRequestsContext();
+    const { isReclaimingIndex, reclaimFromFailedRequest, isAwaitingConfirmation } =
+        useRequestsContext();
     const requestToken: Optional<Token> = allowedTokens[request.token];
 
     // Hold off rendering until token details are loaded
@@ -86,6 +92,16 @@ const RequestDisplay: FC<RequestDisplayProps> = ({
                     <span className="font-semibold">Block&nbsp;Deadline:&nbsp;</span>
                     <span>{request.blockDeadline.toString()}</span>
                 </p>
+                {request.incentive !== ethers.constants.AddressZero && (
+                    <p>
+                        <span className="font-semibold">Incentive&nbsp;Address:&nbsp;</span>
+                        <button
+                            className="text-blue-600 underline"
+                            onClick={() => redirect(`incentives/${request.incentive}`)}>
+                            {request.incentive}
+                        </button>
+                    </p>
+                )}
                 <p>
                     <span className="font-semibold">Computed&nbsp;Amount&nbsp;Out:&nbsp;</span>
                     <span>
@@ -104,7 +120,8 @@ const RequestDisplay: FC<RequestDisplayProps> = ({
                         className="w-full px-2 py-1 bg-yellow-400 rounded-md shadow-md-md"
                         onClick={() => reclaimFromFailedRequest(request.index)}
                         disabled={isReclaimingIndex === request.index}
-                        isSubmitting={isReclaimingIndex === request.index}>
+                        isSubmitting={isReclaimingIndex === request.index}
+                        isAwaitingConfirmation={isAwaitingConfirmation}>
                         Reclaim&nbsp;
                         {bigNumberToDecimalString(
                             request.amountIn,

@@ -59,7 +59,7 @@ export const useFundContext = (): IFundContext => useContext(FundContext);
  * @returns {ReactElement} - The children with the context provided.
  */
 export const FundContextProvider: FC<WrapperProps> = ({ children }: WrapperProps): ReactElement => {
-    const { provider } = useWeb3Context();
+    const { readProvider } = useWeb3Context();
     const [isLoading, setIsLoading] = useState<IFundContext['isLoading']>(false);
     const [fundDetails, setFundDetails] = useState<IFundContext['fundDetails']>(DEFAULT_DETAILS);
     const [fundState, setFundState] = useState<IFundContext['fundState']>(DEFAULT_STATE);
@@ -68,15 +68,16 @@ export const FundContextProvider: FC<WrapperProps> = ({ children }: WrapperProps
     /** Effect for initial load when provider is ready */
     useEffect(() => {
         const loadInitial = async (): Promise<void> => {
-            if (!provider) return;
+            if (!readProvider) return;
             setIsLoading(true);
 
-            const accountingContract = contracts.accounting.connect(provider);
-            const frontOfficeParametersContract = contracts.frontOfficeParameters.connect(provider);
-            const erc20Contract = contracts.erc20.connect(provider);
-            const incentivesManagerContract = contracts.incentivesManager.connect(provider);
-            const iIncentiveContract = contracts.iIncentive.connect(provider);
-            const fundTokenContract = contracts.fundToken.connect(provider);
+            const accountingContract = contracts.accounting.connect(readProvider);
+            const frontOfficeParametersContract =
+                contracts.frontOfficeParameters.connect(readProvider);
+            const erc20Contract = contracts.erc20.connect(readProvider);
+            const incentivesManagerContract = contracts.incentivesManager.connect(readProvider);
+            const iIncentiveContract = contracts.iIncentive.connect(readProvider);
+            const fundTokenContract = contracts.fundToken.connect(readProvider);
 
             const [fundDetailsResponse, fundStateResponse] = await Promise.all([
                 getFundDetails(
@@ -97,7 +98,7 @@ export const FundContextProvider: FC<WrapperProps> = ({ children }: WrapperProps
 
         loadInitial();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [provider]);
+    }, [readProvider]);
 
     return (
         <FundContext.Provider

@@ -23,27 +23,27 @@ type UseChainlinkOracleReturn = {
  * @returns {UseChainlinkOracleReturn} - The price and its decimals.
  */
 const useChainlinkOracle = (address: string): UseChainlinkOracleReturn => {
-    const { provider, currentBlock } = useWeb3Context();
+    const { readProvider, currentBlock } = useWeb3Context();
     const [price, setPrice] = useState<UseChainlinkOracleReturn['price']>(null);
     const [decimals, setDecimals] = useState<UseChainlinkOracleReturn['decimals']>(0);
 
     /** Effect to load the decimals only when oracle address changes */
     useEffect(() => {
         const load = async (): Promise<void> => {
-            if (!address || !provider) {
+            if (!address || !readProvider) {
                 setPrice(null);
                 return;
             }
 
             const chainlinkOracleContract = contracts.chainlinkOracle
                 .attach(address)
-                .connect(provider);
+                .connect(readProvider);
 
             setDecimals(await chainlinkOracleContract.decimals());
         };
 
         load();
-    }, [address, provider]);
+    }, [address, readProvider]);
 
     /**
      * Effect to load the prices every block
@@ -52,17 +52,17 @@ const useChainlinkOracle = (address: string): UseChainlinkOracleReturn => {
      */
     useEffect(() => {
         const load = async (): Promise<void> => {
-            if (!address || !provider) return;
+            if (!address || !readProvider) return;
 
             const chainlinkOracleContract = contracts.chainlinkOracle
                 .attach(address)
-                .connect(provider);
+                .connect(readProvider);
 
             setPrice(await chainlinkOracleContract.latestAnswer());
         };
 
         load();
-    }, [address, provider, currentBlock]);
+    }, [address, readProvider, currentBlock]);
 
     return { price, decimals };
 };

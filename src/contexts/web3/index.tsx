@@ -1,5 +1,5 @@
 // Types
-import type { Web3Provider } from '@ethersproject/providers';
+import type { Web3Provider, JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import type { WrapperProps, Nullable } from '@interfaces/general';
 
 // Libraries
@@ -8,11 +8,13 @@ import { providers } from 'ethers';
 import Web3Modal from 'web3modal';
 
 // Code
+import uris from '@constants/uris';
 import providerOptions from './providerOptions';
 
 interface IWeb3Context {
     isLoading: boolean;
-    provider: Nullable<Web3Provider>;
+    readProvider: JsonRpcProvider;
+    writeProvider: Nullable<Web3Provider>;
     chainId: number;
     currentBlock: number;
     userAddress: Nullable<string>;
@@ -23,7 +25,8 @@ interface IWeb3Context {
 const DEFAULT_CHAIN_ID: IWeb3Context['chainId'] = -1;
 const Web3Context = createContext<IWeb3Context>({
     isLoading: false,
-    provider: null,
+    readProvider: new providers.JsonRpcProvider(uris.bscRpcUri),
+    writeProvider: null,
     chainId: DEFAULT_CHAIN_ID,
     currentBlock: 0,
     userAddress: null,
@@ -45,8 +48,11 @@ export const useWeb3Context = (): IWeb3Context => useContext(Web3Context);
  */
 export const Web3ContextProvider: FC<WrapperProps> = ({ children }: WrapperProps): ReactElement => {
     const [isLoading, setIsLoading] = useState<IWeb3Context['isLoading']>(false);
+    const [readProvider, _setReadProvider] = useState<IWeb3Context['readProvider']>(
+        new providers.JsonRpcProvider(uris.bscRpcUri)
+    );
     const [web3Modal, setWeb3Modal] = useState<Nullable<Web3Modal>>(null);
-    const [provider, setProvider] = useState<IWeb3Context['provider']>(null);
+    const [writeProvider, setWriteProvider] = useState<IWeb3Context['writeProvider']>(null);
     const [chainId, setChainId] = useState<IWeb3Context['chainId']>(DEFAULT_CHAIN_ID);
     const [currentBlock, setCurrentBlock] = useState<IWeb3Context['currentBlock']>(0);
     const [userAddress, setUserAddress] = useState<IWeb3Context['userAddress']>(null);
@@ -70,45 +76,44 @@ export const Web3ContextProvider: FC<WrapperProps> = ({ children }: WrapperProps
 
     /** Effect to check for user when provider changes */
     useEffect(() => {
-        if (provider) {
-            const onAccountsChanged = async (): Promise<void> => {
-                const accounts = await provider.listAccounts();
+        if (!writeProvider) return;
+        const onAccountsChanged = async (): Promise<void> => {
+            const accounts = await writeProvider.listAccounts();
 
-                // Unset the account if no accounts
-                if (accounts.length === 0) {
-                    setUserAddress(null);
-                    return;
-                }
-                setUserAddress(accounts[0]);
-            };
+            // Unset the account if no accounts
+            if (accounts.length === 0) {
+                setUserAddress(null);
+                return;
+            }
+            setUserAddress(accounts[0]);
+        };
 
-            const onChainChanged = async (): Promise<void> => {
-                const { chainId } = await provider.getNetwork();
-                setChainId(chainId);
-            };
+        const onChainChanged = async (): Promise<void> => {
+            const { chainId } = await writeProvider.getNetwork();
+            setChainId(chainId);
+        };
 
-            window.ethereum && window.ethereum.on('accountsChanged', onAccountsChanged);
-            provider.addListener('network', onChainChanged);
-            provider.addListener('block', setCurrentBlock);
+        window.ethereum && window.ethereum.on('accountsChanged', onAccountsChanged);
+        writeProvider.addListener('network', onChainChanged);
+        writeProvider.addListener('block', setCurrentBlock);
 
-            return () => {
-                window.ethereum.removeAllListeners();
-                provider.removeAllListeners();
-            };
-        }
+        return () => {
+            window.ethereum.removeAllListeners();
+            writeProvider.removeAllListeners();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [provider]);
+    }, [writeProvider]);
 
     /** Effect to update the user state and allowed routes whenever user address changes */
     useEffect(() => {
         const fetchUserState = async (): Promise<void> => {
-            if (!userAddress || !provider) return;
+            if (!userAddress || !writeProvider) return;
 
             setIsLoading(true);
 
             // Just reload chain if still not loaded (workaround for glitchy behaviour)
             if (chainId === -1) {
-                const { chainId } = await provider.getNetwork();
+                const { chainId } = await writeProvider.getNetwork();
                 setChainId(chainId);
             }
 
@@ -128,7 +133,9 @@ export const Web3ContextProvider: FC<WrapperProps> = ({ children }: WrapperProps
             const provider = new providers.Web3Provider(instance);
             const userAddress = await provider.getSigner().getAddress();
 
-            setProvider(provider);
+            // provider.connection.url = uris.bscRpcUri;
+
+            setWriteProvider(provider);
             setUserAddress(userAddress);
         } catch (err) {
             console.error(err);
@@ -139,7 +146,8 @@ export const Web3ContextProvider: FC<WrapperProps> = ({ children }: WrapperProps
         <Web3Context.Provider
             value={{
                 isLoading,
-                provider,
+                readProvider,
+                writeProvider,
                 chainId,
                 currentBlock,
                 userAddress,

@@ -21,7 +21,7 @@ type UseIncentivesReturn = {
  * @returns {UseIncentivesReturn} - The incentive details
  */
 const useIncentives = (): UseIncentivesReturn => {
-    const { provider, userAddress } = useWeb3Context();
+    const { readProvider, userAddress } = useWeb3Context();
     const {
         fundDetails: { incentives }
     } = useFundContext();
@@ -32,12 +32,12 @@ const useIncentives = (): UseIncentivesReturn => {
     /** Effect to load when the incentive address or user address changes */
     useEffect(() => {
         const load = async (): Promise<void> => {
-            if (!provider || !userAddress) {
+            if (!readProvider || !userAddress) {
                 setIncentivesDetails({});
                 return;
             }
 
-            const iIncentiveContract = contracts.iIncentive.connect(provider);
+            const iIncentiveContract = contracts.iIncentive.connect(readProvider);
 
             // Load the incentives qualifications
             const incentivesDetailsResponse = await Object.values(incentives).reduce(
@@ -56,7 +56,7 @@ const useIncentives = (): UseIncentivesReturn => {
         };
 
         load();
-    }, [provider, userAddress, incentives]);
+    }, [readProvider, userAddress, incentives]);
 
     return { incentivesDetails };
 };

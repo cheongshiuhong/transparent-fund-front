@@ -1,16 +1,15 @@
 // Types
 import type { FC, ReactElement } from 'react';
-import type { EnumType } from '@interfaces/general';
 
 // Libraries
 import { useState } from 'react';
-import { useFormikContext, useField } from 'formik';
+import { useFormikContext } from 'formik';
 
 // Contexts
-import { useFundContext } from '@contexts/fund';
 import { useRequestsContext } from '@contexts/requests';
 
 // Code
+import addresses from '@constants/addresses';
 import TransactButton from '@components/ui/TransactButton';
 import useTokenApproval from '@hooks/useTokenApproval';
 
@@ -27,9 +26,15 @@ type SubmissionButtonsProps = {
 const SubmissionButtons: FC<SubmissionButtonsProps> = ({
     approvalToken
 }: SubmissionButtonsProps): ReactElement => {
-    const { isRequesting } = useRequestsContext();
+    const { isRequesting, isAwaitingConfirmation: isAwaitingRequestConfirmation } =
+        useRequestsContext();
     const { errors, submitForm } = useFormikContext();
-    const { isApproving, isAllowanceSufficient, approve } = useTokenApproval(approvalToken);
+    const {
+        isApproving,
+        isAwaitingConfirmation: isAwaitingApprovalConfirmation,
+        isAllowanceSufficient,
+        approve
+    } = useTokenApproval(approvalToken, addresses.frontOffice);
     const [approvalError, setApprovalError] = useState<string>('');
 
     /** Submits the approval transaction */
@@ -51,7 +56,8 @@ const SubmissionButtons: FC<SubmissionButtonsProps> = ({
                 className="px-3 py-2 h-10 w-full bg-green-600 text-white rounded-xl"
                 onClick={submitForm}
                 disabled={!!Object.keys(errors).length}
-                isSubmitting={isRequesting}>
+                isSubmitting={isRequesting}
+                isAwaitingConfirmation={isAwaitingRequestConfirmation}>
                 Submit
             </TransactButton>
         );
@@ -65,7 +71,8 @@ const SubmissionButtons: FC<SubmissionButtonsProps> = ({
                 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={onSubmitApproval}
                 disabled={!!Object.keys(errors).length}
-                isSubmitting={isApproving}>
+                isSubmitting={isApproving}
+                isAwaitingConfirmation={isAwaitingApprovalConfirmation}>
                 Approve
             </TransactButton>
             <p className="py-2 text-center text-xs md:text-sm italic">

@@ -90,8 +90,9 @@ const MinAmountOutInput: FC = (): ReactElement => {
             />
             {actualAmountOut && (
                 <p className="mt-1 ml3 text-sm italic">
-                    Based on {CONSERVATIVE_PCT}% of computed amount:&nbsp;
+                    Based on {CONSERVATIVE_PCT}% of&nbsp;
                     {bigNumberToDecimalString(actualAmountOut, tokenDecimals, tokenDecimals)}
+                    &nbsp;(computed amount)
                 </p>
             )}
         </div>

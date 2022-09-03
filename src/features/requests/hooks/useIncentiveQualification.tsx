@@ -21,19 +21,19 @@ type UseIncentiveQualificationReturn = {
  * @returns {UseIncentiveQualificationReturn} - The incentive details
  */
 const useIncentiveQualification = (address: string): UseIncentiveQualificationReturn => {
-    const { provider, userAddress } = useWeb3Context();
+    const { readProvider, userAddress } = useWeb3Context();
     const [isUserQualified, setIsUserQualified] =
         useState<UseIncentiveQualificationReturn['isUserQualified']>(null);
 
     /** Effect to load when the incentive address or user address changes */
     useEffect(() => {
         const load = async (): Promise<void> => {
-            if (!address || !provider || !userAddress) {
+            if (!address || !readProvider || !userAddress) {
                 setIsUserQualified(null);
                 return;
             }
 
-            const incentiveContract = contracts.iIncentive.attach(address).connect(provider);
+            const incentiveContract = contracts.iIncentive.attach(address).connect(readProvider);
 
             setIsUserQualified(await incentiveContract.checkUserQualifies(userAddress));
 
@@ -45,10 +45,10 @@ const useIncentiveQualification = (address: string): UseIncentiveQualificationRe
         load();
 
         return () => {
-            if (!address || !provider) return;
-            contracts.iIncentive.attach(address).connect(provider).removeAllListeners();
+            if (!address || !readProvider) return;
+            contracts.iIncentive.attach(address).connect(readProvider).removeAllListeners();
         };
-    }, [address, provider, userAddress]);
+    }, [address, readProvider, userAddress]);
 
     return { isUserQualified };
 };

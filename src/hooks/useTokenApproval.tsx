@@ -22,6 +22,7 @@ const UINT256_MAX = BigNumber.from(
 
 type UseTokenApprovalReturn = {
     isApproving: boolean;
+    isAwaitingConfirmation: boolean;
     allowance: Nullable<BigNumber>;
     isAllowanceSufficient: boolean;
     approve: () => Promise<void>;
@@ -30,26 +31,29 @@ type UseTokenApprovalReturn = {
 /**
  * Custom hook to check the token allowance and provide the approval function.
  *
- * @param {string} address - The address of the token.
+ * @param {string} tokenAddress - The address of the token.
+ * @param {string} spenderAddress - The address of the spender.
  * @returns {UseTokenApprovalReturn} - The allowance and approval function.
  */
-const useTokenApproval = (address: string): UseTokenApprovalReturn => {
-    const { provider, userAddress } = useWeb3Context();
+const useTokenApproval = (tokenAddress: string, spenderAddress: string): UseTokenApprovalReturn => {
+    const { readProvider, writeProvider, userAddress } = useWeb3Context();
     const [isApproving, setIsApproving] = useState<UseTokenApprovalReturn['isApproving']>(false);
+    const [isAwaitingConfirmation, setIsAwaitingConfirmation] =
+        useState<UseTokenApprovalReturn['isAwaitingConfirmation']>(false);
     const [allowance, setAllowance] = useState<UseTokenApprovalReturn['allowance']>(null);
 
     /** Effect to load the allowance when token address or user address changes */
     useEffect(() => {
         const load = async (): Promise<void> => {
-            if (!address || !provider || !userAddress) {
+            if (!tokenAddress || !readProvider || !userAddress) {
                 setAllowance(null);
                 return;
             }
 
-            const erc20Contract = contracts.erc20.attach(address).connect(provider);
+            const erc20Contract = contracts.erc20.attach(tokenAddress).connect(readProvider);
 
             // Initial fetching of allowance
-            setAllowance(await erc20Contract.allowance(userAddress, addresses.frontOffice));
+            setAllowance(await erc20Contract.allowance(userAddress, spenderAddress));
 
             // Subscribe to new approvals
             const approvalFilter = erc20Contract.filters.Approval(userAddress);
@@ -57,7 +61,7 @@ const useTokenApproval = (address: string): UseTokenApprovalReturn => {
                 approvalFilter,
                 async (_owner: string, spender: string, value: BigNumber) => {
                     // Ignore approvals not to the front office
-                    if (spender !== addresses.frontOffice) return;
+                    if (spender !== spenderAddress) return;
                     setAllowance(value);
                 }
             );
@@ -66,25 +70,32 @@ const useTokenApproval = (address: string): UseTokenApprovalReturn => {
         load();
 
         return () => {
-            if (!provider || !address) return;
-            contracts.erc20.attach(address).connect(provider).removeAllListeners();
+            if (!readProvider || !tokenAddress) return;
+            contracts.erc20.attach(tokenAddress).connect(readProvider).removeAllListeners();
         };
-    }, [address, provider, userAddress]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tokenAddress, readProvider, userAddress]);
 
     /** Makes the transaction to approve the front office to spend user's tokens */
     const approve = async (): Promise<void> => {
-        if (!address || !provider) return;
+        if (!tokenAddress || !writeProvider) return;
         try {
             setIsApproving(true);
-            const erc20Contract = contracts.erc20.attach(address).connect(provider.getSigner());
-            await erc20Contract.approve(addresses.frontOffice, UINT256_MAX);
+            const erc20Contract = contracts.erc20
+                .attach(tokenAddress)
+                .connect(writeProvider.getSigner());
+            const txn = await erc20Contract.approve(spenderAddress, UINT256_MAX);
+            setIsAwaitingConfirmation(true);
+            await txn.wait();
         } finally {
             setIsApproving(false);
+            setIsAwaitingConfirmation(false);
         }
     };
 
     return {
         isApproving,
+        isAwaitingConfirmation,
         allowance,
         isAllowanceSufficient: allowance?.gte(MIN_ALLOWANCE) || false,
         approve

@@ -7,9 +7,12 @@
 // };
 
 export default {
+    // injected: {
+    //     network: { rpcUri: bscRpcUri }
+    // },
     binancechainwallet: {
         package: true
-        // network: networkOptions
+        // network: { rpcUri: bscRpcUri }
     }
     // walletconnect: {
     //     package: WalletConnect,

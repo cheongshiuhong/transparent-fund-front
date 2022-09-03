@@ -8,9 +8,6 @@ import type {
     ButtonHTMLAttributes
 } from 'react';
 
-// Libraries
-import { useState } from 'react';
-
 // Code
 import Spinner from './Spinner';
 
@@ -19,6 +16,7 @@ type FormikFormOnClick = (e?: FormEvent<HTMLFormElement> | undefined) => void;
 type RegularOnClick = (e?: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => Promise<void>;
 type TransactButtonProps = Omit<ButtonProps, 'onClick'> & {
     isSubmitting: boolean;
+    isAwaitingConfirmation: boolean;
     onClick: FormikFormOnClick | RegularOnClick;
 };
 
@@ -30,37 +28,30 @@ type TransactButtonProps = Omit<ButtonProps, 'onClick'> & {
  */
 const TransactButton: FC<TransactButtonProps> = ({
     isSubmitting,
+    isAwaitingConfirmation,
     onClick,
     children,
     ...buttonProps
 }: TransactButtonProps): ReactElement => {
-    const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-
-    // Typical lifecycle:
-    // User clicks --> Wallet signature prompt (Sending transaction)
-    // User signs --> Submits to the chain (Waiting for confirmation)
-    // Confirmed --> Conditional rendering unrenders button/parent component
-
     return (
         <button
             {...buttonProps}
             onClick={async () => {
                 onClick && (await onClick());
-                setIsSubmitted(true);
             }}
-            disabled={buttonProps.disabled || isSubmitting || isSubmitted}
+            disabled={buttonProps.disabled || isSubmitting || isAwaitingConfirmation}
             className={`disabled:opacity-50 disabled:cursor-not-allowed ${
                 buttonProps.className || ''
             }`}>
-            {!isSubmitting && !isSubmitted ? (
+            {!isSubmitting && !isAwaitingConfirmation ? (
                 children
             ) : (
                 <span className="flex items-center justify-center">
                     <Spinner />
-                    {isSubmitting ? (
-                        <>&nbsp;Sending transaction...</>
-                    ) : (
+                    {isAwaitingConfirmation ? (
                         <>&nbsp;Waiting for confirmation...</>
+                    ) : (
+                        <>&nbsp;Sending transaction...</>
                     )}
                 </span>
             )}

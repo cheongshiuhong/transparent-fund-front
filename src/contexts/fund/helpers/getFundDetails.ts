@@ -2,15 +2,8 @@
 import type { Contract } from 'ethers';
 import type { IFundContext } from '../interfaces';
 
-/**
- * Sets timeout.
- *
- * @param {number} ms - The ms to sleep.
- * @returns {Promise<void>} - The timer.
- */
-function timeout(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// Code
+import timeout from '@utils/timeout';
 
 /**
  * Gets the fund details.
@@ -31,41 +24,30 @@ export default async (
     iIncentiveContract: Contract,
     fundTokenContract: Contract
 ): Promise<IFundContext['fundDetails']> => {
-    const managementFee = await accountingContract.getManagementFee();
-    await timeout(1000);
-    const evaluationPeriodBlocks = await accountingContract.getEvaluationPeriodBlocks();
-    await timeout(1000);
-    const allowedTokensAddresses = await frontOfficeParametersContract.getAllowedTokens();
-    await timeout(1000);
-    const maxSingleWithdrawalFundTokenAmount =
-        await frontOfficeParametersContract.getMaxSingleWithdrawalFundTokenAmount();
-    await timeout(1000);
-    const incentivesAddresses = await incentivesManagerContract.getIncentives();
-    await timeout(1000);
-    const fundTokenName = await fundTokenContract.name();
-    await timeout(1000);
-    const fundTokenSymbol = await fundTokenContract.symbol();
-    await timeout(1000);
-    const fundTokenDecimals = await fundTokenContract.decimals();
-    // const [
-    //     managementFee,
-    //     evaluationPeriodBlocks,
-    //     allowedTokensAddresses,
-    //     maxSingleWithdrawalFundTokenAmount,
-    //     incentivesAddresses,
-    //     fundTokenName,
-    //     fundTokenSymbol,
-    //     fundTokenDecimals
-    // ] = await Promise.all([
-    //     accountingContract.getManagementFee(),
-    //     accountingContract.getEvaluationPeriodBlocks(),
-    //     frontOfficeParametersContract.getAllowedTokens(),
-    //     frontOfficeParametersContract.getMaxSingleWithdrawalFundTokenAmount(),
-    //     incentivesManagerContract.getIncentives(),
-    //     fundTokenContract.name(),
-    //     fundTokenContract.symbol(),
-    //     fundTokenContract.decimals()
-    // ]);
+    // Split into two batches of calls
+    const [
+        managementFee,
+        evaluationPeriodBlocks,
+        allowedTokensAddresses,
+        maxSingleWithdrawalFundTokenAmount,
+        incentivesAddresses
+    ] = await Promise.all([
+        accountingContract.getManagementFee(),
+        accountingContract.getEvaluationPeriodBlocks(),
+        frontOfficeParametersContract.getAllowedTokens(),
+        frontOfficeParametersContract.getMaxSingleWithdrawalFundTokenAmount(),
+        incentivesManagerContract.getIncentives()
+    ]);
+
+    await timeout(500);
+
+    const [fundTokenName, fundTokenSymbol, fundTokenDecimals] = await Promise.all([
+        fundTokenContract.name(),
+        fundTokenContract.symbol(),
+        fundTokenContract.decimals()
+    ]);
+
+    await timeout(500);
 
     const allowedTokens = await (allowedTokensAddresses as string[]).reduce(
         async (current, address) => {
@@ -81,12 +63,12 @@ export default async (
         Promise.resolve({}) as Promise<IFundContext['fundDetails']['allowedTokens']>
     );
 
-    await timeout(1000);
-
     const incentives = await (incentivesAddresses as string[]).reduce(async (current, address) => {
         const name = await iIncentiveContract.attach(address).getName();
         return { ...(await current), [address]: { address, name } };
     }, Promise.resolve({}) as Promise<IFundContext['fundDetails']['incentives']>);
+
+    await timeout(500);
 
     return {
         managementFee,

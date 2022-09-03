@@ -25,7 +25,7 @@ const HomePage: NextPage = (): ReactElement => {
                 <meta name="description" content="Tranparent Fund" />
                 <link rel="icon" href="/translucent.png" />
             </Head>
-            Dashboard
+            <p className="w-full text-center">Coming Soon</p>
         </div>
     );
 };
