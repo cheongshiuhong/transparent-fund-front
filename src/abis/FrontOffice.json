@@ -19,6 +19,25 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "tokenAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "DepositsProcessed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "address",
         "name": "account",
@@ -95,59 +114,6 @@
         "internalType": "struct IFrontOffice.RequestAccessor",
         "name": "accessor",
         "type": "tuple"
-      },
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "user",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "amountIn",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "minAmountOut",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "blockDeadline",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "incentive",
-            "type": "address"
-          },
-          {
-            "internalType": "enum FrontOfficeHelpers.RequestStatus",
-            "name": "status",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint256",
-            "name": "blockUpdated",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "computedAmountOut",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bool",
-            "name": "isReclaimed",
-            "type": "bool"
-          }
-        ],
-        "indexed": false,
-        "internalType": "struct FrontOfficeHelpers.Request",
-        "name": "request",
-        "type": "tuple"
       }
     ],
     "name": "RequestCreated",
@@ -200,6 +166,25 @@
       }
     ],
     "name": "Unpaused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "tokenAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "WithdrawalsProcessed",
     "type": "event"
   },
   {

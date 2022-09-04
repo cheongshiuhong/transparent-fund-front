@@ -20,41 +20,33 @@ type UseTokenBalanceReturn = {
  * @returns {UseTokenBalanceReturn} - The balance and its decimals.
  */
 const useTokenBalance = (address: string): UseTokenBalanceReturn => {
-    const { readProvider, userAddress, writeProvider } = useWeb3Context();
+    const { readProvider, userAddress, currentBlock } = useWeb3Context();
     const [balance, setBalance] = useState<UseTokenBalanceReturn['balance']>(BigNumber.from(0));
     const [decimals, setDecimals] = useState<UseTokenBalanceReturn['decimals']>(0);
 
+    const load = async (): Promise<void> => {
+        if (!address || !readProvider || !userAddress) {
+            setBalance(BigNumber.from(0));
+            return;
+        }
+
+        const tokenContract = contracts.erc20.attach(address).connect(readProvider);
+
+        setBalance(await tokenContract.balanceOf(userAddress));
+        setDecimals(await tokenContract.decimals());
+    };
+
     /** Effect to load the balance when input address changes */
     useEffect(() => {
-        const load = async (): Promise<void> => {
-            if (!address || !readProvider || !userAddress) {
-                setBalance(BigNumber.from(0));
-                return;
-            }
-
-            const tokenContract = contracts.erc20.attach(address).connect(readProvider);
-
-            setBalance(await tokenContract.balanceOf(userAddress));
-            setDecimals(await tokenContract.decimals());
-
-            // Subscribe to new transfers
-            const transferOutFilter = tokenContract.filters.Transfer(userAddress);
-            const transferInFilter = tokenContract.filters.Transfer(null, userAddress);
-            tokenContract.on(transferOutFilter, async (_from, _to, amount: BigNumber) =>
-                setBalance((balance) => balance.sub(amount))
-            );
-            tokenContract.on(transferInFilter, async (_from, _to, amount: BigNumber) =>
-                setBalance((balance) => balance.add(amount))
-            );
-        };
-
         load();
-
-        return () => {
-            if (!readProvider || !address) return;
-            contracts.erc20.attach(address).connect(readProvider).removeAllListeners();
-        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address, readProvider, userAddress]);
+
+    /** Reload every 5 blocks (15 seconds) */
+    useEffect(() => {
+        if (currentBlock % 5 === 0) load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentBlock]);
 
     return { balance, decimals };
 };

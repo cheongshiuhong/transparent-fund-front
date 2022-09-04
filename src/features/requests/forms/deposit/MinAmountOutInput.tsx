@@ -14,6 +14,7 @@ import { useFundContext } from '@contexts/fund';
 // Code
 import useChainlinkOracle from '@hooks/useChainlinkOracle';
 import bigNumberToDecimalString from '@utils/numbers/bigNumberToDecimalString';
+import adjustDecimals from '@utils/numbers/adjustDecimals';
 
 const CONSERVATIVE_PCT = 95;
 
@@ -29,7 +30,7 @@ const MinAmountOutInput: FC = (): ReactElement => {
     } = useFundContext();
     const { handleBlur } = useFormikContext();
     const [_tokenField, { value: tokenAddress }] = useField<EnumType<string>>('tokenAddress');
-    const { price: tokenPrice, decimals: tokenDecimals } = useChainlinkOracle(
+    const { price: tokenPrice, decimals: tokenPriceDecimals } = useChainlinkOracle(
         allowedTokens[tokenAddress.value]?.oracle || ''
     );
     const [_amountInField, { value: amountIn }] = useField<string>('amountIn');
@@ -37,23 +38,25 @@ const MinAmountOutInput: FC = (): ReactElement => {
     const [actualAmountOut, setActualAmountOut] = useState<Nullable<BigNumber>>(null);
 
     useEffect(() => {
-        if (!tokenPrice || !fundTokenPrice) return;
+        if (!tokenPrice || !fundTokenPrice || !allowedTokens[tokenAddress.value]) return;
         if (!amountIn) {
             setValue('');
             return;
         }
 
-        // Adjust the token price to fund token's decimals
-        const adjTokenPrice = tokenPrice.mul(
-            BigNumber.from(10).pow(fundToken.decimals - tokenDecimals)
+        // amt_in * token_price / fund_token_price
+        const amountOut = BigNumber.from(amountIn).mul(tokenPrice).div(fundTokenPrice);
+        const adjAmountOut = adjustDecimals(
+            amountOut,
+            // decimals in: tokenDecimals + tokenPriceDecimals - fundTokenPriceDecimals
+            allowedTokens[tokenAddress.value].decimals + tokenPriceDecimals - fundToken.decimals,
+            fundToken.decimals
         );
 
-        // amt_in * token_price / fund_token_price
-        const amountOut = BigNumber.from(amountIn).mul(adjTokenPrice).div(fundTokenPrice);
-        setActualAmountOut(amountOut);
+        setActualAmountOut(adjAmountOut);
 
         // Display CONSERVATIVE_PCT of actual computed amount
-        const conservativeAmountOut = amountOut.mul(CONSERVATIVE_PCT).div(100);
+        const conservativeAmountOut = adjAmountOut.mul(CONSERVATIVE_PCT).div(100);
         setValue(conservativeAmountOut.toString());
 
         // eslint-disable-next-line react-hooks/exhaustive-deps

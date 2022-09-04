@@ -5,6 +5,7 @@ import type { IRequestsContext } from './interfaces';
 
 // Libraries
 import { FC, ReactElement, createContext, useContext, useState, useRef, useEffect } from 'react';
+import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 
 // Contexts
@@ -16,6 +17,13 @@ import { Status } from '@constants/requests';
 
 /** Constants */
 const BATCH_SIZE = 5;
+const DEFAULT_REQUEST_FIELDS = {
+    incentive: ethers.constants.AddressZero,
+    status: Status.PENDING,
+    blockUpdated: BigNumber.from(0),
+    computedAmountOut: BigNumber.from(0),
+    isReclaimed: false
+};
 
 /** Context default fallback values */
 const RequestsContext = createContext<IRequestsContext>({
@@ -117,31 +125,6 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
             setTotal(totalResponse);
             setRequests(requestsResponse);
             setIsLoading(false);
-
-            // // Subscribe to reclaiming of tokens
-            // frontOfficeContract.on(
-            //     frontOfficeContract.filters.RequestReclaimed(userAddress),
-            //     async (_, accessor) => {
-            //         // Get the refs to the states
-            //         const requests = requestsRef.current;
-            //         if (!requests) return;
-
-            //         for (let i = 0; i < requests.length; i++) {
-            //             if (
-            //                 requests[i].isDeposit === accessor.isDeposit &&
-            //                 requests[i].token === accessor.token &&
-            //                 requests[i].queueNumber.eq(accessor.queueNumber)
-            //             ) {
-            //                 setRequests([
-            //                     ...requests.slice(0, i),
-            //                     { ...requests[i], isReclaimed: true },
-            //                     ...requests.slice(i + 1)
-            //                 ]);
-            //                 return;
-            //             }
-            //         }
-            //     }
-            // );
         };
 
         loadInitial();
@@ -184,7 +167,8 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
         if (!writeProvider) return;
         try {
             setIsRequesting(true);
-            const frontOfficeContract = contracts.frontOffice.connect(writeProvider.getSigner());
+            const signer = writeProvider.getSigner();
+            const frontOfficeContract = contracts.frontOffice.connect(signer);
             const txn = await frontOfficeContract.requestDeposit(
                 args.tokenAddress,
                 args.amountIn,
@@ -195,9 +179,26 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
             setIsAwaitingConfirmation(true);
 
             const confirmation = await txn.wait();
-            const event = confirmation.events[1].args;
+            const requestCreatedEvent = confirmation.events.filter(
+                (event: { event: string }) => event.event === 'RequestCreated'
+            )[0];
+            const decodedEventData = frontOfficeContract.interface.decodeEventLog(
+                'RequestCreated',
+                requestCreatedEvent.data,
+                requestCreatedEvent.topics
+            );
+
             setTotal(total.add(1));
-            setRequests([{ index: total, ...event.accessor, ...event.request }, ...requests]);
+            setRequests([
+                {
+                    index: total,
+                    ...decodedEventData.accessor,
+                    user: decodedEventData.userAddress,
+                    ...DEFAULT_REQUEST_FIELDS,
+                    ...args
+                },
+                ...requests
+            ]);
         } finally {
             setIsRequesting(false);
             setIsAwaitingConfirmation(false);
@@ -213,7 +214,8 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
         if (!writeProvider) return;
         try {
             setIsRequesting(true);
-            const frontOfficeContract = contracts.frontOffice.connect(writeProvider.getSigner());
+            const signer = writeProvider.getSigner();
+            const frontOfficeContract = contracts.frontOffice.connect(signer);
             const txn = await frontOfficeContract.requestWithdrawal(
                 args.tokenAddress,
                 args.amountIn,
@@ -223,9 +225,26 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
             setIsAwaitingConfirmation(true);
 
             const confirmation = await txn.wait();
-            const event = confirmation.events[1].args;
+            const requestCreatedEvent = confirmation.events.filter(
+                (event: { event: string }) => event.event === 'RequestCreated'
+            )[0];
+            const decodedEventData = frontOfficeContract.interface.decodeEventLog(
+                'RequestCreated',
+                requestCreatedEvent.data,
+                requestCreatedEvent.topics
+            );
+
             setTotal(total.add(1));
-            setRequests([{ index: total, ...event.accessor, ...event.request }, ...requests]);
+            setRequests([
+                {
+                    index: total,
+                    ...decodedEventData.accessor,
+                    user: decodedEventData.userAddress,
+                    ...DEFAULT_REQUEST_FIELDS,
+                    ...args
+                },
+                ...requests
+            ]);
         } finally {
             setIsRequesting(false);
             setIsAwaitingConfirmation(false);
@@ -269,7 +288,18 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
             const frontOfficeContract = contracts.frontOffice.connect(writeProvider.getSigner());
             const txn = await frontOfficeContract.reclaimFromFailedRequest(index);
             setIsAwaitingConfirmation(true);
+
             await txn.wait();
+
+            for (let i = 0; i < requests.length; i++) {
+                if (requests[i].index === index) {
+                    setRequests([
+                        ...requests.slice(0, i),
+                        { ...requests[i], isReclaimed: true },
+                        ...requests.slice(i + 1)
+                    ]);
+                }
+            }
         } finally {
             setIsReclaimingIndex(null);
             setIsAwaitingConfirmation(false);

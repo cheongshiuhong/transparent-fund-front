@@ -9,7 +9,6 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { useWeb3Context } from '@contexts/web3';
 
 // Code
-import addresses from '@constants/addresses';
 import contracts from '@constants/contracts';
 
 /** Constants */

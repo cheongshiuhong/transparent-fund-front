@@ -32,12 +32,13 @@ export type Request = {
     isDeposit: boolean;
     token: string;
     queueNumber: BigNumber;
-    // Request struct values
+    // Request creation values
     user: string;
     amountIn: BigNumber;
     minAmountOut: BigNumber;
     blockDeadline: BigNumber;
     incentive: string;
+    // Request processed fields
     status: number;
     blockUpdated: BigNumber;
     computedAmountOut: BigNumber;

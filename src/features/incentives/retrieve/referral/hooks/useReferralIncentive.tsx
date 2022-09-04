@@ -16,7 +16,7 @@ type UseReferralIncentiveReturn = {
     isAwaitingConfirmation: boolean;
     isUserRegistered: Nullable<boolean>;
     userDetails: Nullable<{ referrer: string; referees: string[] }>;
-    userBalance: BigNumber;
+    userDepositedBalance: BigNumber;
     register: (referrer: string) => Promise<void>;
     deposit: (amount: BigNumber) => Promise<void>;
     withdraw: (amount: BigNumber) => Promise<void>;
@@ -31,9 +31,9 @@ const useReferralIncentive = (): UseReferralIncentiveReturn => {
     const [isUserRegistered, setIsUserRegistered] =
         useState<UseReferralIncentiveReturn['isUserRegistered']>(null);
     const [userDetails, setUserDetails] = useState<UseReferralIncentiveReturn['userDetails']>(null);
-    const [userBalance, setUserBalance] = useState<UseReferralIncentiveReturn['userBalance']>(
-        BigNumber.from(0)
-    );
+    const [userDepositedBalance, setUserDepositedBalance] = useState<
+        UseReferralIncentiveReturn['userDepositedBalance']
+    >(BigNumber.from(0));
 
     /** Effect to load the user's registration status when provider is ready */
     useEffect(() => {
@@ -51,16 +51,7 @@ const useReferralIncentive = (): UseReferralIncentiveReturn => {
                 ]);
             setIsUserRegistered(isUserRegisteredResponse);
             setUserDetails(userDetailsResponse);
-            setUserBalance(userBalanceResponse);
-
-            // Subscribe to registered status update if not registered
-            // if (!isUserRegisteredResponse) {
-            //     const registeredFilter =
-            //         referralIncentiveContract.filters.UserQualified(userAddress);
-            //     referralIncentiveContract.once(registeredFilter, async () =>
-            //         setIsUserRegistered(true)
-            //     );
-            // }
+            setUserDepositedBalance(userBalanceResponse);
         };
 
         load();
@@ -104,7 +95,7 @@ const useReferralIncentive = (): UseReferralIncentiveReturn => {
             const txn = await referralIncentiveContract.deposit(amount);
             setIsAwaitingConfirmation(true);
             await txn.wait();
-            setUserBalance(userBalance.add(amount));
+            setUserDepositedBalance(userDepositedBalance.add(amount));
         } finally {
             setIsTransacting(false);
             setIsAwaitingConfirmation(false);
@@ -122,7 +113,7 @@ const useReferralIncentive = (): UseReferralIncentiveReturn => {
             const txn = await referralIncentiveContract.withdraw(amount);
             setIsAwaitingConfirmation(true);
             await txn.wait();
-            setUserBalance(userBalance.sub(amount));
+            setUserDepositedBalance(userDepositedBalance.sub(amount));
         } finally {
             setIsTransacting(false);
             setIsAwaitingConfirmation(false);
@@ -134,7 +125,7 @@ const useReferralIncentive = (): UseReferralIncentiveReturn => {
         isAwaitingConfirmation,
         isUserRegistered,
         userDetails,
-        userBalance,
+        userDepositedBalance,
         register,
         deposit,
         withdraw

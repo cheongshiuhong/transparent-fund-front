@@ -4,6 +4,9 @@ import type { FC, ReactElement } from 'react';
 // Libraries
 import { useState } from 'react';
 
+// Contexts
+import { useFundContext } from '@contexts/fund';
+
 // Code
 import Spinner from '@components/ui/Spinner';
 import Modal from '@components/ui/Modal';
@@ -19,12 +22,13 @@ import WithdrawalForm from './forms/WithdrawalForm';
  * @returns {ReactElement} - The referral incentive component.
  */
 const ReferralIncentive: FC = (): ReactElement => {
+    const { userFundTokenBalance } = useFundContext();
     const {
         isTransacting,
         isAwaitingConfirmation,
         isUserRegistered,
         userDetails,
-        userBalance,
+        userDepositedBalance,
         register,
         deposit,
         withdraw
@@ -62,10 +66,16 @@ const ReferralIncentive: FC = (): ReactElement => {
                         <div className="h-6"></div>
                         <div className="flex items-center justify-between space-x-4">
                             <div>
-                                <span className="font-semibold">Balance</span>:&nbsp;
-                                {bigNumberToDecimalString(userBalance, 18, 4)}
+                                <p>
+                                    <span className="font-semibold">Available Balance</span>:&nbsp;
+                                    {bigNumberToDecimalString(userFundTokenBalance, 18, 4)}
+                                </p>
+                                <p>
+                                    <span className="font-semibold">Deposited Balance</span>:&nbsp;
+                                    {bigNumberToDecimalString(userDepositedBalance, 18, 4)}
+                                </p>
                             </div>
-                            <div className="flex-items-center justify-end sm:space-x-2 md:space-x-4">
+                            <div className="flex items-center justify-end sm:space-x-2 md:space-x-4">
                                 <button
                                     onClick={() => setIsDepositFormOpen(true)}
                                     className="px-2 py-1 bg-green-600 text-white rounded-md shadow-md">
@@ -110,7 +120,7 @@ const ReferralIncentive: FC = (): ReactElement => {
                     withdraw={withdraw}
                     isWithdrawing={isTransacting}
                     isAwaitingConfirmation={isAwaitingConfirmation}
-                    withdrawableAmount={userBalance}
+                    withdrawableAmount={userDepositedBalance}
                     onDone={() => setIsWithdrawalFormOpen(false)}
                 />
             </Modal>

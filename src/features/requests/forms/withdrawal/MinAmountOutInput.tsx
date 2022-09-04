@@ -14,6 +14,7 @@ import { useFundContext } from '@contexts/fund';
 // Code
 import useChainlinkOracle from '@hooks/useChainlinkOracle';
 import bigNumberToDecimalString from '@utils/numbers/bigNumberToDecimalString';
+import adjustDecimals from '@utils/numbers/adjustDecimals';
 
 const CONSERVATIVE_PCT = 95;
 
@@ -29,7 +30,7 @@ const MinAmountOutInput: FC = (): ReactElement => {
     } = useFundContext();
     const { handleBlur } = useFormikContext();
     const [_tokenField, { value: tokenAddress }] = useField<EnumType<string>>('tokenAddress');
-    const { price: tokenPrice, decimals: tokenDecimals } = useChainlinkOracle(
+    const { price: tokenPrice, decimals: tokenPriceDecimals } = useChainlinkOracle(
         allowedTokens[tokenAddress.value]?.oracle || ''
     );
     const [_amountInField, { value: amountIn }] = useField<string>('amountIn');
@@ -37,30 +38,25 @@ const MinAmountOutInput: FC = (): ReactElement => {
     const [actualAmountOut, setActualAmountOut] = useState<Nullable<BigNumber>>(null);
 
     useEffect(() => {
-        if (!tokenPrice || !fundTokenPrice) return;
+        if (!tokenPrice || !fundTokenPrice || !allowedTokens[tokenAddress.value]) return;
         if (!amountIn) {
             setValue('');
             return;
         }
 
-        // Adjust the fund token price to fund token's decimals
-        let adjFundTokenPrice: BigNumber;
-        if (tokenDecimals < fundToken.decimals) {
-            adjFundTokenPrice = fundTokenPrice.div(
-                BigNumber.from(10).pow(fundToken.decimals - tokenDecimals)
-            );
-        } else {
-            adjFundTokenPrice = fundTokenPrice.mul(
-                BigNumber.from(10).pow(tokenDecimals - fundToken.decimals)
-            );
-        }
+        // amt_in * fund_token_price / token_price
+        const amountOut = BigNumber.from(amountIn).mul(fundTokenPrice).div(tokenPrice);
+        const adjAmountOut = adjustDecimals(
+            amountOut,
+            // decimals in: fundTokenDecimals + fundTokenPriceDecimals - tokenPriceDecimals
+            2 * fundToken.decimals - tokenPriceDecimals,
+            allowedTokens[tokenAddress.value].decimals
+        );
 
-        // amt_in * token_price / fund_token_price
-        const amountOut = BigNumber.from(amountIn).mul(adjFundTokenPrice).div(tokenPrice);
-        setActualAmountOut(amountOut);
+        setActualAmountOut(adjAmountOut);
 
         // Display CONSERVATIVE_PCT of actual computed amount
-        const conservativeAmountOut = amountOut.mul(CONSERVATIVE_PCT).div(100);
+        const conservativeAmountOut = adjAmountOut.mul(CONSERVATIVE_PCT).div(100);
         setValue(conservativeAmountOut.toString());
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,7 +70,7 @@ const MinAmountOutInput: FC = (): ReactElement => {
                 Minimum Amount Token Out
             </label>
             <BigNumberInput
-                decimals={tokenDecimals}
+                decimals={allowedTokens[tokenAddress.value]?.decimals || 18}
                 value={value}
                 onChange={setValue}
                 renderInput={(props) => (
@@ -91,7 +87,11 @@ const MinAmountOutInput: FC = (): ReactElement => {
             {actualAmountOut && (
                 <p className="mt-1 ml3 text-sm italic">
                     Based on {CONSERVATIVE_PCT}% of&nbsp;
-                    {bigNumberToDecimalString(actualAmountOut, tokenDecimals, tokenDecimals)}
+                    {bigNumberToDecimalString(
+                        actualAmountOut,
+                        allowedTokens[tokenAddress.value]?.decimals || 18,
+                        allowedTokens[tokenAddress.value]?.decimals || 18
+                    )}
                     &nbsp;(computed amount)
                 </p>
             )}
