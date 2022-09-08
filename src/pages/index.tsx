@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 
 // Libraries
 import Head from 'next/head';
+import { useEffect } from 'react';
 
 // Code
 // import Layout from '@components/layout';
@@ -11,6 +12,7 @@ import Head from 'next/head';
 // import Overview from '@features/overview';
 
 // import Requests from '@features/requests';
+import useRouter from '@hooks/useRouter';
 
 /**
  * The home page.
@@ -18,14 +20,23 @@ import Head from 'next/head';
  * @returns {ReactElement} - The home page component.
  */
 const HomePage: NextPage = (): ReactElement => {
+    const { redirect } = useRouter();
+
+    // Redirect to incentives for now before dashboard is ready
+    useEffect(() => {
+        redirect('/requests');
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <div>
             <Head>
                 <title>Tranparent Fund</title>
                 <meta name="description" content="Tranparent Fund" />
-                <link rel="icon" href="/translucent.png" />
+                <link rel="icon" href="/translucent_logo.png" />
             </Head>
-            <p className="w-full text-center">Coming Soon</p>
+            {/* <p className="w-full text-center">Coming Soon</p> */}
         </div>
     );
 };

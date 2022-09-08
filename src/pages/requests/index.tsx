@@ -22,7 +22,7 @@ const RequestsPage: NextPage = (): ReactElement => {
             <Head>
                 <title>Tranparent Fund</title>
                 <meta name="description" content="Tranparent Fund" />
-                <link rel="icon" href="/translucent.png" />
+                <link rel="icon" href="/translucent_logo.png" />
             </Head>
             <RequestsContextProvider>
                 <Requests />
