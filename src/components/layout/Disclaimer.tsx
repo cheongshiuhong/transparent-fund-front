@@ -2,7 +2,7 @@
 import type { FC, ReactElement } from 'react';
 
 // Libraries
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 // Contexts
 import { useWeb3Context } from '@contexts/web3';
@@ -141,7 +141,7 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
     const [isScrolledToBottom, setIsScrolledToBottom] = useState<boolean>(false);
     const [isAcknowledged, setIsAcknowledged] = useState<boolean>(false);
 
-    /** Redner callback to bind the onScroll callback to the terms box div */
+    /** Render callback to bind the onScroll callback to the terms box div */
     const termsScrollableBoxRef = useCallback((divElement: HTMLDivElement) => {
         const onScroll = () => {
             setIsScrolledToBottom(
@@ -161,10 +161,11 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
             isOpen={isDisclaiming}
             contentStyle={{
                 width: '70%',
-                maxWidth: '920px'
+                maxWidth: '920px',
+                height: 'auto'
             }}
             closeOnDocumentClick={false}>
-            <div className="w-full text-lg lg:text-xl">
+            <div className="h-full w-full text-base lg:text-lg">
                 <p className="w-full text-center font-bold underline">
                     Transparent Protocol Disclaimer
                 </p>
@@ -175,7 +176,7 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                 <div className="h-6"></div>
                 <div
                     ref={termsScrollableBoxRef}
-                    className="h-60% max-h-[420px] md:max-h-[560px] p-5 bg-gray-300 overflow-y-auto">
+                    className="h-60% max-h-[360px] md:max-h-[460px] p-5 bg-gray-300 overflow-y-auto">
                     {/* Force initial focus at top */}
                     <a href="" className="hidden">
                         top
@@ -190,7 +191,7 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                     </ol>
                 </div>
                 <div className="h-6"></div>
-                <div className="w-5/6 lg:w-3/4 mx-auto">
+                <div className="w-11/12 lg:w-5/6 mx-auto">
                     <p className="font-semibold text-center leading-6">
                         Never invest more than you can lose - you alone are responsible for your
                         investment. Transparent is NOT responsible for any losses or changes in
@@ -209,11 +210,11 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                             disabled={!isScrolledToBottom}
                             onChange={() => setIsAcknowledged(!isAcknowledged)}
                         />
-                        <span className="text-base lg:text-lg">
+                        <span className="text-sm lg:text-base">
                             &nbsp;&nbsp;I hereby acknowledge and agree to the terms described above.
                         </span>
                     </label>
-                    <p className="text-center text-base text-red-600 italic">
+                    <p className="text-center text-sm lg:text-base text-red-600 italic">
                         Please finish reading before acknowledging.
                     </p>
                 </div>
