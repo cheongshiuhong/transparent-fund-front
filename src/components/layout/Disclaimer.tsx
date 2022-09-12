@@ -161,7 +161,7 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
             isOpen={isDisclaiming}
             contentStyle={{
                 width: '70%',
-                maxWidth: '920px',
+                maxWidth: '820px',
                 height: 'auto'
             }}
             closeOnDocumentClick={false}>
@@ -173,10 +173,10 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                 <p className="w-full px-10 text-center leading-6">
                     All investing comes with risk. It&apos;s important to do your own research.
                 </p>
-                <div className="h-6"></div>
+                <div className="h-4"></div>
                 <div
                     ref={termsScrollableBoxRef}
-                    className="h-60% max-h-[360px] md:max-h-[460px] p-5 bg-gray-300 overflow-y-auto">
+                    className="h-60% max-h-[320px] md:max-h-[340px] p-5 bg-gray-300 overflow-y-auto">
                     {/* Force initial focus at top */}
                     <a href="" className="hidden">
                         top
@@ -191,15 +191,15 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                     </ol>
                 </div>
                 <div className="h-6"></div>
-                <div className="w-11/12 lg:w-5/6 mx-auto">
-                    <p className="font-semibold text-center leading-6">
+                <div className="w-5/6 lg:w-3/4 mx-auto">
+                    <p className="font-semibold text-center leading-5">
                         Never invest more than you can lose - you alone are responsible for your
                         investment. Transparent is NOT responsible for any losses or changes in
                         token value, and NOT responsible for any lost funds due to smart contract
                         error or exploits.
                     </p>
                 </div>
-                <div className="h-6"></div>
+                <div className="h-4"></div>
                 <div>
                     <label htmlFor="isAcknowledged" className="flex items-center justify-center">
                         <input
@@ -218,7 +218,7 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                         Please finish reading before acknowledging.
                     </p>
                 </div>
-                <div className="h-6"></div>
+                <div className="h-4"></div>
                 <div className="w-full flex justify-end">
                     <button
                         className="px-3 py-2 bg-blue-700 text-white rounded-md shadow-md
