@@ -16,7 +16,7 @@ const PARAGRAPHS = [
         title: 'Introduction',
         text: (
             <>
-                Transparent Protocol aims to exploit the advantages of on- chain atomic operations
+                Transparent Protocol aims to exploit the advantages of on-chain atomic operations
                 and protocols so as to provide relatively stable and uncorrelated returns across the
                 cryptoverse.
             </>
@@ -67,7 +67,11 @@ const PARAGRAPHS = [
                 governance process to prevent external manipulation of funds.
                 {PARAGRAPH_BREAK}
                 The smart contract is openly auditable&nbsp;
-                <a href="www.google.com" className="text-blue-600 underline cursor-pointer">
+                <a
+                    href="https://bscscan.com/token/0x2a7984F4D0D54f39b5430E1b09bDb2212b5b0a7A"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline cursor-pointer">
                     here
                 </a>
                 . Please note that the &quot;token value&quot; does not represent the AUM within
@@ -145,13 +149,11 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
     const termsScrollableBoxRef = useCallback((divElement: HTMLDivElement) => {
         const onScroll = () => {
             setIsScrolledToBottom(
-                divElement.scrollHeight - divElement.scrollTop === divElement.clientHeight
+                divElement.scrollHeight - divElement.scrollTop - divElement.clientHeight < 30
             );
         };
 
         if (divElement) {
-            console.log('scrollto');
-            divElement.scrollTo(0, 0);
             divElement.addEventListener('scroll', onScroll);
         }
     }, []);

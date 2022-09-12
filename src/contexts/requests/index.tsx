@@ -258,10 +258,8 @@ export const RequestsContextProvider: FC<WrapperProps> = ({
             setIsCancelling(true);
             const frontOfficeContract = contracts.frontOffice.connect(writeProvider.getSigner());
             const txn = await frontOfficeContract.cancelLatestRequest();
-            console.log('txn:', txn);
             setIsAwaitingConfirmation(true);
             const confirmation = await txn.wait();
-            console.log('confirmation', confirmation);
             setRequests([
                 {
                     ...requests[0],
