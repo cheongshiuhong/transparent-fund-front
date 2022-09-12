@@ -7,9 +7,10 @@ import { Popup } from 'reactjs-popup';
 
 type ModalProps = WrapperProps & {
     isOpen: boolean;
-    onClose: () => void;
+    onClose?: () => void;
     overlayStyle?: { [key: string]: number | string };
     contentStyle?: { [key: string]: number | string };
+    closeOnDocumentClick?: boolean;
 };
 
 /**
@@ -23,13 +24,14 @@ const Modal: FC<ModalProps> = ({
     isOpen,
     onClose,
     overlayStyle,
-    contentStyle
+    contentStyle,
+    closeOnDocumentClick
 }: ModalProps): ReactElement => {
     return (
         <Popup
             open={isOpen}
-            closeOnDocumentClick
-            onClose={onClose}
+            closeOnDocumentClick={closeOnDocumentClick === undefined ? true : closeOnDocumentClick}
+            onClose={onClose ? onClose : () => null}
             overlayStyle={{
                 position: 'absolute',
                 top: '0',

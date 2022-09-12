@@ -20,8 +20,8 @@ const RequestsPage: NextPage = (): ReactElement => {
     return (
         <div>
             <Head>
-                <title>Tranparent Fund</title>
-                <meta name="description" content="Tranparent Fund" />
+                <title>Transparent</title>
+                <meta name="description" content="Transparent" />
                 <link rel="icon" href="/translucent_logo.png" />
             </Head>
             <RequestsContextProvider>

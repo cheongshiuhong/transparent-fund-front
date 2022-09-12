@@ -20,6 +20,7 @@ import { useFundContext } from '@contexts/fund';
 // Code
 import useRouter from '@hooks/useRouter';
 import bigNumberToDecimalString from '@utils/numbers/bigNumberToDecimalString';
+import Disclaimer from './Disclaimer';
 
 // Icons
 // import { AiOutlineBarChart } from 'react-icons/ai';
@@ -27,7 +28,8 @@ import { MdOutlineChat } from 'react-icons/md';
 import { FiGift } from 'react-icons/fi';
 
 // Constants
-const DATE_LAUNCHED = new Date('2022-08-28');
+const SGT_ADJUSTMENT_MILLISECONDS = 8 * 60 * 60 * 1000;
+const TIMESTAMP_LAUNCHED = new Date('2022-08-28').getTime() - SGT_ADJUSTMENT_MILLISECONDS;
 const WORKING_DECIMALS = 6;
 const ROUTES = [
     // { path: '/', label: 'Dashboard', matches: ['/'], Icon: AiOutlineBarChart },
@@ -42,7 +44,7 @@ const ROUTES = [
 
 const computeDailyReturns = (tokenPrice: BigNumber): BigNumber => {
     const initialTokenPrice = BigNumber.from(10).pow(18);
-    const daysFromLaunch = Math.floor((Date.now() - DATE_LAUNCHED.getTime()) / (86400 * 1000));
+    const daysFromLaunch = Math.floor((Date.now() - TIMESTAMP_LAUNCHED) / (86400 * 1000));
     const dailyReturns = tokenPrice
         .mul(BigNumber.from(10).pow(WORKING_DECIMALS))
         .div(initialTokenPrice)
@@ -194,6 +196,7 @@ const Layout: FC<WrapperProps> = ({ children }: WrapperProps): ReactElement => {
                     {children}
                 </div>
             </div>
+            <Disclaimer callback={connectWallet} />
         </div>
     );
 };

@@ -1,5 +1,5 @@
 // Types
-import type { Web3Provider, JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
+import type { Web3Provider, JsonRpcProvider } from '@ethersproject/providers';
 import type { WrapperProps, Nullable } from '@interfaces/general';
 
 // Libraries
@@ -11,26 +11,37 @@ import Web3Modal from 'web3modal';
 import uris from '@constants/uris';
 import providerOptions from './providerOptions';
 
+// Constants
+enum DisclaimerState {
+    NOT_DISCLAIMED = 0,
+    DISCLAIMING = 1,
+    DISCLAIMED = 2
+}
+
 interface IWeb3Context {
     isLoading: boolean;
+    isDisclaiming: boolean;
     readProvider: JsonRpcProvider;
     writeProvider: Nullable<Web3Provider>;
     chainId: number;
     currentBlock: number;
     userAddress: Nullable<string>;
     connectWallet: () => Promise<void>;
+    setDisclaimed: () => void;
 }
 
 /** Context default fallback values */
 const DEFAULT_CHAIN_ID: IWeb3Context['chainId'] = -1;
 const Web3Context = createContext<IWeb3Context>({
     isLoading: false,
+    isDisclaiming: false,
     readProvider: new providers.JsonRpcProvider(uris.bscRpcUri),
     writeProvider: null,
     chainId: DEFAULT_CHAIN_ID,
     currentBlock: 0,
     userAddress: null,
-    connectWallet: async () => console.warn('No context provided.')
+    connectWallet: async () => console.warn('No context provided.'),
+    setDisclaimed: () => console.warn('No context provided.')
 });
 
 /**
@@ -48,6 +59,9 @@ export const useWeb3Context = (): IWeb3Context => useContext(Web3Context);
  */
 export const Web3ContextProvider: FC<WrapperProps> = ({ children }: WrapperProps): ReactElement => {
     const [isLoading, setIsLoading] = useState<IWeb3Context['isLoading']>(false);
+    const [disclaimerState, setDisclaimerState] = useState<DisclaimerState>(
+        DisclaimerState.NOT_DISCLAIMED
+    );
     const [readProvider, _setReadProvider] = useState<IWeb3Context['readProvider']>(
         new providers.JsonRpcProvider(uris.bscRpcUri)
     );
@@ -83,8 +97,11 @@ export const Web3ContextProvider: FC<WrapperProps> = ({ children }: WrapperProps
             // Unset the account if no accounts
             if (accounts.length === 0) {
                 setUserAddress(null);
+                localStorage.removeItem('userAddress');
                 return;
             }
+
+            localStorage.setItem('userAddress', accounts[0]);
             setUserAddress(accounts[0]);
         };
 
@@ -128,12 +145,19 @@ export const Web3ContextProvider: FC<WrapperProps> = ({ children }: WrapperProps
     const connectWallet = async (): Promise<void> => {
         if (!web3Modal) return;
 
+        if (
+            !localStorage.getItem('userAddress') &&
+            disclaimerState === DisclaimerState.NOT_DISCLAIMED
+        ) {
+            setDisclaimerState(DisclaimerState.DISCLAIMING);
+            return;
+        }
+
         try {
             const instance = await web3Modal.connect();
             const provider = new providers.Web3Provider(instance);
             const userAddress = await provider.getSigner().getAddress();
-
-            // provider.connection.url = uris.bscRpcUri;
+            localStorage.setItem('userAddress', userAddress);
 
             setWriteProvider(provider);
             setUserAddress(userAddress);
@@ -146,12 +170,14 @@ export const Web3ContextProvider: FC<WrapperProps> = ({ children }: WrapperProps
         <Web3Context.Provider
             value={{
                 isLoading,
+                isDisclaiming: disclaimerState === DisclaimerState.DISCLAIMING,
                 readProvider,
                 writeProvider,
                 chainId,
                 currentBlock,
                 userAddress,
-                connectWallet
+                connectWallet,
+                setDisclaimed: () => setDisclaimerState(DisclaimerState.DISCLAIMED)
             }}>
             {children}
         </Web3Context.Provider>
