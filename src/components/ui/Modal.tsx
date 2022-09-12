@@ -11,6 +11,7 @@ type ModalProps = WrapperProps & {
     overlayStyle?: { [key: string]: number | string };
     contentStyle?: { [key: string]: number | string };
     closeOnDocumentClick?: boolean;
+    closeOnEscape?: boolean;
 };
 
 /**
@@ -25,12 +26,14 @@ const Modal: FC<ModalProps> = ({
     onClose,
     overlayStyle,
     contentStyle,
-    closeOnDocumentClick
+    closeOnDocumentClick,
+    closeOnEscape
 }: ModalProps): ReactElement => {
     return (
         <Popup
             open={isOpen}
             closeOnDocumentClick={closeOnDocumentClick === undefined ? true : closeOnDocumentClick}
+            closeOnEscape={closeOnEscape === undefined ? true : closeOnEscape}
             onClose={onClose ? onClose : () => null}
             overlayStyle={{
                 position: 'absolute',

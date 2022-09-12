@@ -63,8 +63,8 @@ const PARAGRAPHS = [
         text: (
             <>
                 Transparent has a list of protocols that it can interact with, so as to prevent
-                unauthorised rug pulls or liquidity drains. Fund manager wallets are voted in by a
-                governance process to prevent external manipulation of funds.
+                unauthorised rug pulls or liquidity drains. <i>Fund manager wallets</i> are voted in
+                by a governance process to prevent external manipulation of funds.
                 {PARAGRAPH_BREAK}
                 The smart contract is openly auditable&nbsp;
                 <a
@@ -166,7 +166,8 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                 maxWidth: '820px',
                 height: 'auto'
             }}
-            closeOnDocumentClick={false}>
+            closeOnDocumentClick={false}
+            closeOnEscape={false}>
             <div className="h-full w-full text-base lg:text-lg">
                 <p className="w-full text-center font-bold underline">
                     Transparent Protocol Disclaimer
