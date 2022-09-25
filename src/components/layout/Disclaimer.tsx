@@ -9,16 +9,40 @@ import { useWeb3Context } from '@contexts/web3';
 
 // Code
 import Modal from '@components/ui/Modal';
+import addresses from '@constants/addresses';
 
-const PARAGRAPH_BREAK = <span className="block h-4"></span>;
+const PARAGRAPH_BREAK = <span className="block h-2"></span>;
 const PARAGRAPHS = [
     {
         title: 'Introduction',
         text: (
             <>
-                Transparent Protocol aims to exploit the advantages of on-chain atomic operations
-                and protocols so as to provide relatively stable and uncorrelated returns across the
-                cryptoverse.
+                Transparent is a private protocol that aims to exploit the advantages of on-chain
+                atomic operations and protocols so as to provide relatively stable and uncorrelated
+                returns across the cryptoverse. Transparent is&nbsp;
+                <b>not a regulated investment product</b>, it is largely centralized and is on-chain
+                for its owners to exploit the advantages of on-chain atomic operations and
+                protocols.
+            </>
+        )
+    },
+    {
+        title: 'Non-custodial and non-fiduciary',
+        text: (
+            <>
+                Transparent is not a regulated investment product and does not claim to be `managing
+                assets`, when Transparent tokens are minted, the holder is purchasing fractional
+                ownership of an underlying algorithmically rebalanced portfolio of cryptocurrencies
+                and tokens that back/collaterize the token. Translucent does not provide custodial
+                services over the tokens used to mint Transparent tokens, and the minted Transparent
+                tokens are held in the holder&apos;s wallets and thus Translucent does not maintain
+                a fiduciary relationship with its holders.
+                {PARAGRAPH_BREAK}
+                Each holder should conduct their own due diligence towards the underlying collateral
+                portfolio, and recognise the possibility of a complete loss of the underlying
+                collateral portfolio. When holders mint Transparent, they represent that they
+                understand the risks of doing so fully, and have full control and responsibility of
+                their Transparent tokens and are able to sell them off at any point in time.
             </>
         )
     },
@@ -26,14 +50,14 @@ const PARAGRAPHS = [
         title: 'Informational Purposes',
         text: (
             <>
-                The information set out in this document is provided solely for INFORMATIONAL
-                PURPOSES and does not constitute any binding commitment. Please do not rely on this
-                information in making purchasing decisions because ultimately, the development,
-                release, and timing of any features or functionality remains at the sole discretion
-                of the Project, and is subject to change. Further, the Disclaimer, Whitepaper or the
-                Website may be amended or replaced from time to time. There are no obligations to
-                update the Disclaimer, Whitepaper or the Website, or to provide recipients with
-                access to any information beyond what is provided herein.
+                The information set out in the website and whitepaper is provided solely for
+                INFORMATIONAL PURPOSES and does not constitute any binding commitment. Please do not
+                rely on this information in making purchasing decisions because ultimately, the
+                development, release, and timing of any features or functionality remains at the
+                sole discretion of Translucent, and is subject to change. Further, the Disclaimer,
+                Whitepaper or the Website may be amended or replaced from time to time. There are no
+                obligations to update the Disclaimer, Whitepaper or the Website, or to provide
+                recipients with access to any information beyond what is provided herein.
                 {PARAGRAPH_BREAK}
                 No regulatory authority has examined or approved, whether formally or informally, of
                 any of the information set out in the Disclaimer, Whitepaper or the Website. No such
@@ -48,9 +72,9 @@ const PARAGRAPHS = [
         title: 'Engaging with Transparent Protocol',
         text: (
             <>
-                Holders stake BUSD to mint Transparent tokens. When the value of Transparent&apos;s
-                portfolio grows, the value of Transparent&apos;s tokens will grow to reflect that,
-                and that represents the growth of the original BUSD.
+                Transparent Holders mint Transparent tokens with BUSD. When the value of the
+                collateral portfolio grows/shrinks, the value of Transparent&apos;s tokens will
+                grow/shrink to reflect that.
                 {PARAGRAPH_BREAK}
                 For every 1% of returns generated by Transparent, 0.3% of returns will be minted as
                 Transparent and distributed back to the Protocol owners. Other than this incentive
@@ -63,12 +87,12 @@ const PARAGRAPHS = [
         text: (
             <>
                 Transparent has a list of protocols that it can interact with, so as to prevent
-                unauthorised rug pulls or liquidity drains. <i>Fund manager wallets</i> are voted in
-                by a governance process to prevent external manipulation of funds.
+                unauthorised rug pulls or liquidity drains. <i>Portfolio manager wallets</i> are
+                voted in by a governance process to prevent external manipulation of funds.
                 {PARAGRAPH_BREAK}
                 The smart contract is openly auditable&nbsp;
                 <a
-                    href="https://bscscan.com/token/0x2a7984F4D0D54f39b5430E1b09bDb2212b5b0a7A"
+                    href={`https://bscscan.com/token/${addresses.fundToken}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 underline cursor-pointer">
@@ -92,12 +116,14 @@ const PARAGRAPHS = [
                 Whitepaper.
                 {PARAGRAPH_BREAK}
                 Even the most ardent holders should only seek to diversify their total portfolio
-                with a controlled and informed allocation of Transparent. There is a possibility to
-                incur losses, perhaps even a complete and total loss.
-                {PARAGRAPH_BREAK}
+                with a controlled and informed allocation of Transparent.&nbsp;
+                <b>
+                    There is a possibility to incur losses, perhaps even a complete and total loss
+                </b>
+                .{PARAGRAPH_BREAK}
                 Transparent does not take responsibility for any losses that might potentially arise
                 from holding the token. While the team will perform responsible and principled
-                risk-taking, it cannot guarantee the absence of catastrophic and complete losses
+                risk-taking, it cannot guarantee the absence of catastrophic and complete losses.
             </>
         )
     },
@@ -107,12 +133,9 @@ const PARAGRAPHS = [
             <>
                 Actual amount for liquidity available for monthly withdrawal is up to the
                 protocol&apos;s discretion. More generally, up to 5% of Transparent AUM will be
-                converted to BUSD for withdrawals up till the 5% has been exhausted, then the
-                withdrawals will be gated until the following month. However, no liquidity is
-                guaranteed by Transparent.
-                {PARAGRAPH_BREAK}
-                Liquidity can still be achieved by selling Transparent on DEXes, or with other
-                wallets.
+                converted to BUSD for withdrawals and once exhausted, then withdrawals will be gated
+                until the following month. Liquidity is not guaranteed by Transparent, but can still
+                be achieved by selling Transparent on DEXes, or with other wallets.
             </>
         )
     },
@@ -120,11 +143,12 @@ const PARAGRAPHS = [
         title: 'Indemnification by Holders',
         text: (
             <>
-                Holders of Transparent Token agrees to indemnify and hold harmless the project team,
-                and each person, but only insofar as such loss, liability, claim, damage or expense
-                arises out of or is based upon usage of Transparent, a decrease in token value,
-                withdrawal gates or any untrue statement or omission, or alleged untrue statement or
-                omission, made in the Disclaimer, Whitepaper or the Website.
+                Holders of Transparent Token agrees to indemnify and hold harmless Translucent, the
+                team behind Transparent and each person, but only insofar as such loss, liability,
+                claim, damage or expense arises out of or is based upon usage of Transparent, a
+                decrease in token value, withdrawal gates or any untrue statement or omission, or
+                alleged untrue statement or omission, made in the Disclaimer, Whitepaper or the
+                Website.
             </>
         )
     }
@@ -173,7 +197,7 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                     Transparent Protocol Disclaimer
                 </p>
                 <div className="h-2"></div>
-                <p className="w-full px-10 text-center leading-6">
+                <p className="w-full px-10 text-sm text-center leading-6">
                     All investing comes with risk. It&apos;s important to do your own research.
                 </p>
                 <div className="h-4"></div>
@@ -184,18 +208,18 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                     <a href="" className="hidden">
                         top
                     </a>
-                    <ol className="list-decimal list-outside ml-5 space-y-8">
+                    <ol className="list-decimal list-outside ml-5 space-y-6">
                         {PARAGRAPHS.map((paragraph) => (
-                            <li key={paragraph.title} className="leading-6">
+                            <li key={paragraph.title} className="text-sm leading-5">
                                 <span className="underline">{paragraph.title}</span>.&nbsp;
-                                <span className="disclaimer-text">{paragraph.text}</span>
+                                <span>{paragraph.text}</span>
                             </li>
                         ))}
                     </ol>
                 </div>
                 <div className="h-6"></div>
                 <div className="w-5/6 lg:w-3/4 mx-auto">
-                    <p className="font-semibold text-center leading-5">
+                    <p className="text-sm text-center font-semibold leading-5">
                         Never invest more than you can lose - you alone are responsible for your
                         investment. Transparent is NOT responsible for any losses or changes in
                         token value, and NOT responsible for any lost funds due to smart contract
@@ -207,17 +231,17 @@ const Disclaimer: FC<DisclaimerProps> = ({ callback }: DisclaimerProps): ReactEl
                     <label htmlFor="isAcknowledged" className="flex items-center justify-center">
                         <input
                             id="isAcknowledged"
-                            className="h-5 w-5"
+                            className="h-4 w-4"
                             type="checkbox"
                             checked={isAcknowledged}
                             disabled={!isScrolledToBottom}
                             onChange={() => setIsAcknowledged(!isAcknowledged)}
                         />
-                        <span className="text-sm lg:text-base">
+                        <span className="text-sm">
                             &nbsp;&nbsp;I hereby acknowledge and agree to the terms described above.
                         </span>
                     </label>
-                    <p className="text-center text-sm lg:text-base text-red-600 italic">
+                    <p className="text-center text-sm text-red-600 italic">
                         Please finish reading before acknowledging.
                     </p>
                 </div>
