@@ -119,10 +119,10 @@ const Layout: FC<WrapperProps> = ({ children }: WrapperProps): ReactElement => {
                                 Number(bigNumberToDecimalString(fundTokenPrice, 18, 4))
                             )}
                     </p>
-                    <p>
+                    {/* <p>
                         <span className="font-semibold">Annual Returns:</span>&nbsp;
                         {fundTokenPrice && <>{computeAnnualizedReturns(fundTokenPrice)}%</>}
-                    </p>
+                    </p> */}
                 </div>
                 {/* Navigations */}
                 <nav className="mt-10">
